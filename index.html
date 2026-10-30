@@ -1060,6 +1060,241 @@
   <p id="footer-text">&copy; <time datetime="2025">2025</time> <span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="name">Simone Pio Barbagallo</span></span> &nbsp;·&nbsp; <span itemprop="sourceOrganization">Department of Mathematics and Computer Science, University of Catania</span> &nbsp;·&nbsp; <a href="mailto:simone.barbagallo@phd.unict.it" rel="author" itemprop="email">simone.barbagallo@phd.unict.it</a></p>
 </footer>
 
-<script>const navbar = document.getElementById('navbar'); window.addEventListener('scroll', () => navbar.classList.toggle('scrolled', window.scrollY > 60), { passive: true }); const navToggleBtn = document.getElementById('navToggle'); const navLinksEl = document.getElementById('navLinks'); navToggleBtn.addEventListener('click', () => { const isOpen = navLinksEl.classList.toggle('open'); navToggleBtn.setAttribute('aria-expanded', String(isOpen)); }); document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => { navLinksEl.classList.remove('open'); navToggleBtn.setAttribute('aria-expanded', 'false'); })); const io = new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }); }, { threshold: 0.07 }); document.querySelectorAll('.fi').forEach(el => io.observe(el)); const PUB_LIMIT = 9; let pubFilter = 'all', pubExpanded = false; function renderPubs() { let total = 0; document.querySelectorAll('#pubList .pub-card').forEach(card => { const match = (pubFilter === 'all' || card.dataset.type === pubFilter); if (!match) { card.style.display = 'none'; return; } total++; card.style.display = (!pubExpanded && total > PUB_LIMIT) ? 'none' : ''; }); const wrap = document.getElementById('pubMoreWrap'), btn = document.getElementById('pubMoreBtn'); if (wrap && btn) { wrap.style.display = total > PUB_LIMIT ? '' : 'none'; btn.querySelector('.more-lbl').style.display = pubExpanded ? 'none' : ''; btn.querySelector('.less-lbl').style.display = pubExpanded ? '' : 'none'; } } function filterPubs(type, btn) { document.querySelectorAll('.pub-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); }); btn.classList.add('active'); btn.setAttribute('aria-selected','true'); pubFilter = type; pubExpanded = false; renderPubs(); } function togglePubMore() { pubExpanded = !pubExpanded; renderPubs(); } function pubData(card) { const q = s => { const e = card.querySelector(s); return e ? e.textContent.trim().replace(/\s+/g,' ') : ''; }; const link = card.querySelector('.pub-link'); return { title:q('.pub-title'), authors:q('.pub-authors').split('·').map(s=>s.trim()).filter(Boolean), venue:q('.pub-venue'), year:q('.pub-year').replace(/[^0-9]/g,''), doi:link?link.getAttribute('href'):'', type:card.dataset.type }; } function apaCite(d) { const fmt = a => a.replace(/\.(?=[A-Z])/g,'. ').replace(/\s+/g,' ').trim(); const A = d.authors.map(fmt); const auth = A.length <= 1 ? (A[0]||'') : A.slice(0,-1).join(', ') + ', & ' + A[A.length-1]; let s = auth + ' (' + d.year + '). ' + d.title + '. ' + d.venue + '.'; if (d.doi) s += ' ' + d.doi; return s.replace(/\s+/g,' ').trim(); } function bibCite(d) { const map = {conference:'inproceedings', journal:'article', book:'incollection', abstract:'misc'}; const t = map[d.type] || 'misc'; const key = ((d.authors[0]||'ref').split(',')[0].replace(/[^A-Za-z]/g,'').toLowerCase()||'ref') + (d.year||''); const vf = t === 'article' ? 'journal' : (t === 'misc' ? 'howpublished' : 'booktitle'); let s = '@'+t+'{'+key+',\n author = {'+d.authors.join(' and ')+'},\n title = {'+d.title+'},\n '+vf+' = {'+d.venue+'},\n year = {'+d.year+'}'; if (d.doi) s += ',\n doi = {'+d.doi.replace('https://doi.org/','')+'}'; return s + '\n}'; } function copyCite(btn, fmt) { const d = pubData(btn.closest('.pub-card')); const text = fmt === 'apa' ? apaCite(d) : bibCite(d); const it = document.documentElement.lang === 'it'; navigator.clipboard.writeText(text).then( () => pubToast((fmt==='apa'?'APA':'BibTeX') + (it?' copiato':' copied')), () => pubToast(it?'Copia non riuscita':'Copy failed')); } function pubToast(msg) { let el = document.getElementById('pubToast'); if (!el) { el = document.createElement('div'); el.id='pubToast'; el.className='pub-toast'; document.body.appendChild(el); } el.textContent = msg; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 1900); } document.querySelectorAll('#pubList .pub-card').forEach(card => { const bar = document.createElement('div'); bar.className = 'pub-cite'; bar.innerHTML = '<button class="cite-btn" onclick="copyCite(this,\'apa\')" title="Copy APA citation"><i class="fas fa-quote-right" aria-hidden="true"></i> APA</button>' + '<button class="cite-btn" onclick="copyCite(this,\'bib\')" title="Copy BibTeX / LaTeX"><i class="fas fa-code" aria-hidden="true"></i> BibTeX</button>'; card.appendChild(bar); }); // order: items without DOI (forthcoming / in press) before items with DOI (function () { const list = document.getElementById('pubList'); if (!list) return; const cards = [...list.querySelectorAll('.pub-card')]; const noDoi = cards.filter(c => !c.querySelector('.pub-link')); const withDoi = cards.filter(c => c.querySelector('.pub-link')); [...noDoi, ...withDoi].forEach(c => list.appendChild(c)); })(); renderPubs(); function switchSkillTab(tab, btn) { document.querySelectorAll('.sk-tab').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); }); document.querySelectorAll('.sk-pane').forEach(p => p.classList.remove('active')); btn.classList.add('active'); btn.setAttribute('aria-selected', 'true'); document.getElementById('tab-' + tab).classList.add('active'); } const barObs = new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting) { e.target.style.width = e.target.dataset.w; barObs.unobserve(e.target); } }); }, { threshold: 0.3 }); document.querySelectorAll('.skill-fill').forEach(fill => { fill.dataset.w = fill.style.width; fill.style.width = '0'; barObs.observe(fill); }); function runCounter(el) { const target = +el.dataset.target; const duration = 1200; const start = performance.now(); (function tick(now) { const t = Math.min((now - start) / duration, 1); const eased = 1 - Math.pow(1 - t, 3); el.textContent = Math.round(eased * target); if (t < 1) requestAnimationFrame(tick); })(start); } const ctrObs = new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting) { e.target.querySelectorAll('.stat-num[data-target]').forEach(runCounter); ctrObs.unobserve(e.target); } }); }, { threshold: 0.1, rootMargin: '0px 0px -10% 0px' }); const statsGrid = document.querySelector('.stats-grid'); if (statsGrid) { ctrObs.observe(statsGrid); // Fallback: if the observer hasn't fired shortly after load, run the counters anyway setTimeout(() => { const r = statsGrid.getBoundingClientRect(); if (r.top < window.innerHeight && r.bottom > 0) { statsGrid.querySelectorAll('.stat-num[data-target]').forEach(el => { if (el.textContent === '0') runCounter(el); }); } }, 1500); } let tourIdx = 0; const TOUR_COUNT = 4; function moveTour(dir) { tourIdx = (tourIdx + dir + TOUR_COUNT) % TOUR_COUNT; updateTour(); } function goToTour(i) { tourIdx = i; updateTour(); } function updateTour() { document.getElementById('tourTrack').style.transform = `translateX(-${tourIdx * 100}%)`; document.querySelectorAll('.tour-dot').forEach((d, i) => { d.classList.toggle('active', i === tourIdx); d.setAttribute('aria-selected', String(i === tourIdx)); }); } document.querySelector('.tour-viewport').addEventListener('keydown', e => { if (e.key === 'ArrowLeft') { moveTour(-1); e.preventDefault(); } if (e.key === 'ArrowRight') { moveTour(1); e.preventDefault(); } }); document.querySelectorAll('.mp-overlay').forEach(ov => { ov.addEventListener('click', () => { ov.remove(); }); }); let currentLang = 'en'; const LONG = { en: { 'about-p1': 'I am a <strong>PhD Candidate in Computer Science</strong> (40th cycle) at the University of Catania, conducting research within the <a href="https://archeomatica.unict.it" target="_blank" rel="noopener noreferrer" style="color:var(--cyan)">Archeomatica Lab</a> under Prof. Filippo Stanco. My work sits at the convergence of <strong>Artificial Intelligence</strong>, Digital Humanities, and Cultural Heritage, developing intelligent systems that combine <strong>Large Language Models</strong>, <strong>Retrieval-Augmented Generation (RAG)</strong>, Computer Vision, and 3D technologies to create immersive and accessible cultural heritage experiences.', 'about-p2': 'Alongside AI-driven cultural heritage systems, I investigate <strong>Game Studies</strong> and <strong>Serious Games</strong> as vehicles for cultural knowledge transmission. My research explores how game design principles — narrative agency, immersive mechanics, and interactive storytelling — can serve as powerful frameworks for engaging audiences with historical and archaeological content, contributing to the fields of <strong>game-based learning</strong>, game literacy, and transmedia education within the Digital Humanities.', 'contact-sub': 'For research collaborations, conference invitations, peer review requests, or academic inquiries, feel free to reach out.', 'footer-text': '&copy; 2025 Simone Pio Barbagallo &nbsp;&middot;&nbsp; Department of Mathematics and Computer Science, University of Catania &nbsp;&middot;&nbsp; <a href="mailto:simone.barbagallo@phd.unict.it">simone.barbagallo@phd.unict.it</a>' }, it: { 'about-p1': 'Sono <strong>Dottorando in Informatica</strong> (40° ciclo) presso l\'Università di Catania, dove conduco ricerca nell\'ambito dell\'<a href="https://archeomatica.unict.it" target="_blank" rel="noopener noreferrer" style="color:var(--cyan)">Archeomatica Lab</a> sotto la supervisione del Prof. Filippo Stanco. Il mio lavoro si situa alla convergenza tra <strong>Intelligenza Artificiale</strong>, Digital Humanities e Patrimonio Culturale, sviluppando sistemi intelligenti che integrano <strong>Large Language Models</strong>, <strong>Retrieval-Augmented Generation (RAG)</strong>, Computer Vision e tecnologie 3D per creare esperienze culturali immersive e accessibili.', 'about-p2': 'Parallelamente ai sistemi di IA per il patrimonio culturale, indago i <strong>Game Studies</strong> e i <strong>Serious Games</strong> come veicoli di trasmissione della conoscenza culturale. La mia ricerca esplora come i principi del game design — agency narrativa, meccaniche immersive e storytelling interattivo — possano costituire potenti strumenti per coinvolgere il pubblico con contenuti storici e archeologici, contribuendo ai campi del <strong>game-based learning</strong>, della game literacy e dell\'educazione transmediale nelle Digital Humanities.', 'contact-sub': 'Per collaborazioni di ricerca, inviti a conferenze, richieste di peer review o domande accademiche, non esitare a contattarmi.', 'footer-text': '&copy; 2025 Simone Pio Barbagallo &nbsp;&middot;&nbsp; Dipartimento di Matematica e Informatica, Università di Catania &nbsp;&middot;&nbsp; <a href="mailto:simone.barbagallo@phd.unict.it">simone.barbagallo@phd.unict.it</a>' } }; function applyLang(lang) { document.documentElement.lang = lang; document.querySelectorAll('[data-it]').forEach(el => { if (!el.dataset.en) el.dataset.en = el.innerHTML; el.innerHTML = lang === 'it' ? el.dataset.it : el.dataset.en; }); Object.keys(LONG[lang]).forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = LONG[lang][id]; }); const btn = document.getElementById('langBtn'); btn.textContent = lang === 'it' ? '🇬🇧 EN' : '🇮🇹 IT'; btn.setAttribute('aria-label', lang === 'it' ? 'Switch to English' : 'Passa all\'italiano'); document.querySelectorAll('a[target="_blank"]').forEach(link => { if (!link.querySelector('.sr-only[data-ext]')) { const notice = document.createElement('span'); notice.className = 'sr-only'; notice.setAttribute('data-ext', '1'); notice.textContent = ' (opens in new tab)'; link.appendChild(notice); } }); } function toggleLang() { currentLang = currentLang === 'en' ? 'it' : 'en'; applyLang(currentLang); } document.querySelectorAll('i.fas, i.fab, i.ai').forEach(icon => { if (!icon.hasAttribute('aria-label')) icon.setAttribute('aria-hidden', 'true'); }); document.querySelectorAll('a[target="_blank"]').forEach(link => { if (!link.querySelector('.sr-only[data-ext]')) { const notice = document.createElement('span'); notice.className = 'sr-only'; notice.setAttribute('data-ext', '1'); notice.textContent = ' (opens in new tab)'; link.appendChild(notice); } }); if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { document.querySelectorAll('.stat-num[data-target]').forEach(el => { el.textContent = el.dataset.target; }); document.querySelectorAll('.skill-fill').forEach(fill => { fill.style.width = fill.dataset.w || fill.style.width; }); }</script>
+<script>const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => navbar.classList.toggle('scrolled', window.scrollY > 60), { passive: true });
+const navToggleBtn = document.getElementById('navToggle');
+const navLinksEl = document.getElementById('navLinks');
+navToggleBtn.addEventListener('click', () => {
+const isOpen = navLinksEl.classList.toggle('open');
+navToggleBtn.setAttribute('aria-expanded', String(isOpen));
+});
+document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => {
+navLinksEl.classList.remove('open');
+navToggleBtn.setAttribute('aria-expanded', 'false');
+}));
+
+const io = new IntersectionObserver(entries => {
+entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.07 });
+document.querySelectorAll('.fi').forEach(el => io.observe(el));
+
+const PUB_LIMIT = 9;
+let pubFilter = 'all', pubExpanded = false;
+function renderPubs() {
+let total = 0;
+document.querySelectorAll('#pubList .pub-card').forEach(card => {
+const match = (pubFilter === 'all' || card.dataset.type === pubFilter);
+if (!match) { card.style.display = 'none'; return; }
+total++;
+card.style.display = (!pubExpanded && total > PUB_LIMIT) ? 'none' : '';
+});
+const wrap = document.getElementById('pubMoreWrap'), btn = document.getElementById('pubMoreBtn');
+if (wrap && btn) {
+wrap.style.display = total > PUB_LIMIT ? '' : 'none';
+btn.querySelector('.more-lbl').style.display = pubExpanded ? 'none' : '';
+btn.querySelector('.less-lbl').style.display = pubExpanded ? '' : 'none';
+}
+}
+function filterPubs(type, btn) {
+document.querySelectorAll('.pub-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-selected','false'); });
+btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+pubFilter = type; pubExpanded = false; renderPubs();
+}
+function togglePubMore() { pubExpanded = !pubExpanded; renderPubs(); }
+function pubData(card) {
+const q = s => { const e = card.querySelector(s); return e ? e.textContent.trim().replace(/\s+/g,' ') : ''; };
+const link = card.querySelector('.pub-link');
+return { title:q('.pub-title'), authors:q('.pub-authors').split('·').map(s=>s.trim()).filter(Boolean),
+venue:q('.pub-venue'), year:q('.pub-year').replace(/[^0-9]/g,''), doi:link?link.getAttribute('href'):'', type:card.dataset.type };
+}
+function apaCite(d) {
+const fmt = a => a.replace(/\.(?=[A-Z])/g,'. ').replace(/\s+/g,' ').trim();
+const A = d.authors.map(fmt);
+const auth = A.length <= 1 ? (A[0]||'') : A.slice(0,-1).join(', ') + ', & ' + A[A.length-1];
+let s = auth + ' (' + d.year + '). ' + d.title + '. ' + d.venue + '.';
+if (d.doi) s += ' ' + d.doi;
+return s.replace(/\s+/g,' ').trim();
+}
+function bibCite(d) {
+const map = {conference:'inproceedings', journal:'article', book:'incollection', abstract:'misc'};
+const t = map[d.type] || 'misc';
+const key = ((d.authors[0]||'ref').split(',')[0].replace(/[^A-Za-z]/g,'').toLowerCase()||'ref') + (d.year||'');
+const vf = t === 'article' ? 'journal' : (t === 'misc' ? 'howpublished' : 'booktitle');
+let s = '@'+t+'{'+key+',\n author = {'+d.authors.join(' and ')+'},\n title = {'+d.title+'},\n '+vf+' = {'+d.venue+'},\n year = {'+d.year+'}';
+if (d.doi) s += ',\n doi = {'+d.doi.replace('https://doi.org/','')+'}';
+return s + '\n}';
+}
+function copyCite(btn, fmt) {
+const d = pubData(btn.closest('.pub-card'));
+const text = fmt === 'apa' ? apaCite(d) : bibCite(d);
+const it = document.documentElement.lang === 'it';
+navigator.clipboard.writeText(text).then(
+() => pubToast((fmt==='apa'?'APA':'BibTeX') + (it?' copiato':' copied')),
+() => pubToast(it?'Copia non riuscita':'Copy failed'));
+}
+function pubToast(msg) {
+let el = document.getElementById('pubToast');
+if (!el) { el = document.createElement('div'); el.id='pubToast'; el.className='pub-toast'; document.body.appendChild(el); }
+el.textContent = msg; el.classList.add('show');
+clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 1900);
+}
+document.querySelectorAll('#pubList .pub-card').forEach(card => {
+const bar = document.createElement('div');
+bar.className = 'pub-cite';
+bar.innerHTML = '<button class="cite-btn" onclick="copyCite(this,\'apa\')" title="Copy APA citation"><i class="fas fa-quote-right" aria-hidden="true"></i> APA</button>'
++ '<button class="cite-btn" onclick="copyCite(this,\'bib\')" title="Copy BibTeX / LaTeX"><i class="fas fa-code" aria-hidden="true"></i> BibTeX</button>';
+card.appendChild(bar);
+});
+
+(function () {
+const list = document.getElementById('pubList');
+if (!list) return;
+const cards = [...list.querySelectorAll('.pub-card')];
+const noDoi = cards.filter(c => !c.querySelector('.pub-link'));
+const withDoi = cards.filter(c => c.querySelector('.pub-link'));
+[...noDoi, ...withDoi].forEach(c => list.appendChild(c));
+})();
+renderPubs();
+
+function switchSkillTab(tab, btn) {
+document.querySelectorAll('.sk-tab').forEach(b => {
+b.classList.remove('active');
+b.setAttribute('aria-selected', 'false');
+});
+document.querySelectorAll('.sk-pane').forEach(p => p.classList.remove('active'));
+btn.classList.add('active');
+btn.setAttribute('aria-selected', 'true');
+document.getElementById('tab-' + tab).classList.add('active');
+}
+
+const barObs = new IntersectionObserver(entries => {
+entries.forEach(e => {
+if (e.isIntersecting) { e.target.style.width = e.target.dataset.w; barObs.unobserve(e.target); }
+});
+}, { threshold: 0.3 });
+document.querySelectorAll('.skill-fill').forEach(fill => {
+fill.dataset.w = fill.style.width;
+fill.style.width = '0';
+barObs.observe(fill);
+});
+
+function runCounter(el) {
+const target = +el.dataset.target;
+const duration = 1200;
+const start = performance.now();
+(function tick(now) {
+const t = Math.min((now - start) / duration, 1);
+const eased = 1 - Math.pow(1 - t, 3);
+el.textContent = Math.round(eased * target);
+if (t < 1) requestAnimationFrame(tick);
+})(start);
+}
+const ctrObs = new IntersectionObserver(entries => {
+entries.forEach(e => {
+if (e.isIntersecting) {
+e.target.querySelectorAll('.stat-num[data-target]').forEach(runCounter);
+ctrObs.unobserve(e.target);
+}
+});
+}, { threshold: 0.1, rootMargin: '0px 0px -10% 0px' });
+const statsGrid = document.querySelector('.stats-grid');
+if (statsGrid) {
+ctrObs.observe(statsGrid);
+
+setTimeout(() => {
+const r = statsGrid.getBoundingClientRect();
+if (r.top < window.innerHeight && r.bottom > 0) {
+statsGrid.querySelectorAll('.stat-num[data-target]').forEach(el => {
+if (el.textContent === '0') runCounter(el);
+});
+}
+}, 1500);
+}
+
+let tourIdx = 0;
+const TOUR_COUNT = 4;
+function moveTour(dir) { tourIdx = (tourIdx + dir + TOUR_COUNT) % TOUR_COUNT; updateTour(); }
+function goToTour(i) { tourIdx = i; updateTour(); }
+function updateTour() {
+document.getElementById('tourTrack').style.transform = `translateX(-${tourIdx * 100}%)`;
+document.querySelectorAll('.tour-dot').forEach((d, i) => {
+d.classList.toggle('active', i === tourIdx);
+d.setAttribute('aria-selected', String(i === tourIdx));
+});
+}
+
+document.querySelector('.tour-viewport').addEventListener('keydown', e => {
+if (e.key === 'ArrowLeft') { moveTour(-1); e.preventDefault(); }
+if (e.key === 'ArrowRight') { moveTour(1); e.preventDefault(); }
+});
+
+document.querySelectorAll('.mp-overlay').forEach(ov => {
+ov.addEventListener('click', () => { ov.remove(); });
+});
+
+let currentLang = 'en';
+const LONG = {
+en: {
+'about-p1': 'I am a <strong>PhD Candidate in Computer Science</strong> (40th cycle) at the University of Catania, conducting research within the <a href="https://archeomatica.unict.it" target="_blank" rel="noopener noreferrer" style="color:var(--cyan)">Archeomatica Lab</a> under Prof. Filippo Stanco. My work sits at the convergence of <strong>Artificial Intelligence</strong>, Digital Humanities, and Cultural Heritage, developing intelligent systems that combine <strong>Large Language Models</strong>, <strong>Retrieval-Augmented Generation (RAG)</strong>, Computer Vision, and 3D technologies to create immersive and accessible cultural heritage experiences.',
+'about-p2': 'Alongside AI-driven cultural heritage systems, I investigate <strong>Game Studies</strong> and <strong>Serious Games</strong> as vehicles for cultural knowledge transmission. My research explores how game design principles — narrative agency, immersive mechanics, and interactive storytelling — can serve as powerful frameworks for engaging audiences with historical and archaeological content, contributing to the fields of <strong>game-based learning</strong>, game literacy, and transmedia education within the Digital Humanities.',
+'contact-sub': 'For research collaborations, conference invitations, peer review requests, or academic inquiries, feel free to reach out.',
+'footer-text': '&copy; 2025 Simone Pio Barbagallo &nbsp;&middot;&nbsp; Department of Mathematics and Computer Science, University of Catania &nbsp;&middot;&nbsp; <a href="mailto:simone.barbagallo@phd.unict.it">simone.barbagallo@phd.unict.it</a>'
+},
+it: {
+'about-p1': 'Sono <strong>Dottorando in Informatica</strong> (40° ciclo) presso l\'Università di Catania, dove conduco ricerca nell\'ambito dell\'<a href="https://archeomatica.unict.it" target="_blank" rel="noopener noreferrer" style="color:var(--cyan)">Archeomatica Lab</a> sotto la supervisione del Prof. Filippo Stanco. Il mio lavoro si situa alla convergenza tra <strong>Intelligenza Artificiale</strong>, Digital Humanities e Patrimonio Culturale, sviluppando sistemi intelligenti che integrano <strong>Large Language Models</strong>, <strong>Retrieval-Augmented Generation (RAG)</strong>, Computer Vision e tecnologie 3D per creare esperienze culturali immersive e accessibili.',
+'about-p2': 'Parallelamente ai sistemi di IA per il patrimonio culturale, indago i <strong>Game Studies</strong> e i <strong>Serious Games</strong> come veicoli di trasmissione della conoscenza culturale. La mia ricerca esplora come i principi del game design — agency narrativa, meccaniche immersive e storytelling interattivo — possano costituire potenti strumenti per coinvolgere il pubblico con contenuti storici e archeologici, contribuendo ai campi del <strong>game-based learning</strong>, della game literacy e dell\'educazione transmediale nelle Digital Humanities.',
+'contact-sub': 'Per collaborazioni di ricerca, inviti a conferenze, richieste di peer review o domande accademiche, non esitare a contattarmi.',
+'footer-text': '&copy; 2025 Simone Pio Barbagallo &nbsp;&middot;&nbsp; Dipartimento di Matematica e Informatica, Università di Catania &nbsp;&middot;&nbsp; <a href="mailto:simone.barbagallo@phd.unict.it">simone.barbagallo@phd.unict.it</a>'
+}
+};
+
+function applyLang(lang) {
+document.documentElement.lang = lang;
+document.querySelectorAll('[data-it]').forEach(el => {
+if (!el.dataset.en) el.dataset.en = el.innerHTML;
+el.innerHTML = lang === 'it' ? el.dataset.it : el.dataset.en;
+});
+Object.keys(LONG[lang]).forEach(id => {
+const el = document.getElementById(id);
+if (el) el.innerHTML = LONG[lang][id];
+});
+const btn = document.getElementById('langBtn');
+btn.textContent = lang === 'it' ? '🇬🇧 EN' : '🇮🇹 IT';
+btn.setAttribute('aria-label', lang === 'it' ? 'Switch to English' : 'Passa all\'italiano');
+
+document.querySelectorAll('a[target="_blank"]').forEach(link => {
+if (!link.querySelector('.sr-only[data-ext]')) {
+const notice = document.createElement('span');
+notice.className = 'sr-only';
+notice.setAttribute('data-ext', '1');
+notice.textContent = ' (opens in new tab)';
+link.appendChild(notice);
+}
+});
+}
+function toggleLang() { currentLang = currentLang === 'en' ? 'it' : 'en'; applyLang(currentLang); }
+
+document.querySelectorAll('i.fas, i.fab, i.ai').forEach(icon => {
+if (!icon.hasAttribute('aria-label')) icon.setAttribute('aria-hidden', 'true');
+});
+
+document.querySelectorAll('a[target="_blank"]').forEach(link => {
+if (!link.querySelector('.sr-only[data-ext]')) {
+const notice = document.createElement('span');
+notice.className = 'sr-only';
+notice.setAttribute('data-ext', '1');
+notice.textContent = ' (opens in new tab)';
+link.appendChild(notice);
+}
+});
+
+if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+document.querySelectorAll('.stat-num[data-target]').forEach(el => {
+el.textContent = el.dataset.target;
+});
+document.querySelectorAll('.skill-fill').forEach(fill => {
+fill.style.width = fill.dataset.w || fill.style.width;
+});
+}</script>
 </body>
 </html>
